@@ -17,7 +17,7 @@ setup(
     author_email="soren@gutsandglory.dk",
     url="https://github.com/sorenlind/rectools/",
     packages=find_packages(),
-    install_requires=["numpy", "scipy", "rankmetrics", "pandas", "tqdm"],
+    install_requires=["implicit", "numpy", "scipy", "rankmetrics", "pandas", "tqdm"],
     extras_require={
         "dev": ["black", "flake8", "mypy", "pycodestyle", "pydocstyle", "rope"]
     },
