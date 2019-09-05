@@ -50,6 +50,9 @@ def train(input_folder, output_folder, k=1000):
     print(
         f" ◦ {model.similarity.shape[0]:,} x {model.similarity.shape[1]:,} sim matrix"
     )
+
+    assert isinstance(model.similarity, scipy.sparse.csr_matrix)
+
     print("")
     print("Saving model")
     scipy.sparse.save_npz(model_file, model.similarity)
@@ -98,8 +101,12 @@ class KnnModel:
         self._item_ids = item_ids
         self._item_binarizer = MultiLabelBinarizer(classes=self._item_ids)
         self._item_binarizer.fit([])
-        self._sim_matrix = sim_matrix
-
+        assert isinstance(sim_matrix, scipy.sparse.csr_matrix)
+        # The CSR similarity matrix must be transposed to top k values for each column
+        # (as opposed to for each row). This is required when computing the scores by
+        # multiplying activity vector by the similarity matrix
+        self._sim_matrix = sim_matrix.T
+ 
     def recommend(self, item_ids, k, exclude_consumed):
         """
         Recommend for consumption history.
