@@ -106,8 +106,8 @@ class KnnModel:
         # (as opposed to for each row). This is required when computing the scores by
         # multiplying activity vector by the similarity matrix
         self._sim_matrix = sim_matrix.T
- 
-    def recommend(self, item_ids, k, exclude_consumed):
+
+    def recommend(self, item_ids, k, exclude_consumed, normalize=False):
         """
         Recommend for consumption history.
 
@@ -115,9 +115,11 @@ class KnnModel:
         :param k: Number of items to return.
         :param exclude_consumed: A value indicating whether consumed items should be
                                  removed from the results.
+        :param normalize: A value indicating whether to normalize scores to values
+                          between 0 and 1.
         """
         encoding = self._item_binarizer.transform([item_ids])
-        scores = self.score(encoding)
+        scores = self.score(encoding, normalize)
         if exclude_consumed:
             for i, x in enumerate(encoding[0]):
                 if not x:
@@ -130,9 +132,11 @@ class KnnModel:
         top_scores = [round(s, 5) for s in scores[0, top_indices][0]]
         return sorted(zip(top_ids, top_scores), key=lambda x: x[1], reverse=True)
 
-    def score(self, encodings):
+    def score(self, encodings, normalize):
         """Compute similarity scores for specified u_x_i matrix."""
         scores = scipy.sparse.csc_matrix.dot(encodings, self._sim_matrix)
+        if normalize:
+            scores = scores / encodings.sum(axis=1)
         return scores
 
     @staticmethod
