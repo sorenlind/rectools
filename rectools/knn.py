@@ -40,8 +40,10 @@ def train(input_folder, output_folder, k=1000):
     i_x_u_train = u_x_i_train.T.tocsr()
     print(f" ◦ {i_x_u_train.shape[1]:8,} users in training data")
     print(f" ◦ {i_x_u_train.shape[0]:8,} items in training data")
-    print(f" ◦ {u_x_i_train.sum(axis=0).mean():11,.2f} users per item on average")
-    print(f" ◦ {u_x_i_train.sum(axis=1).mean():11,.2f} items per user on average")
+    print(f" ◦ {u_x_i_train.sum(axis=0).mean():11,.2f} points per item on average")
+    print(f" ◦ {(u_x_i_train > 0).sum(axis=0).mean():11,.2f} users per item on average")
+    print(f" ◦ {u_x_i_train.sum(axis=1).mean():11,.2f} points per user on average")
+    print(f" ◦ {(u_x_i_train > 0).sum(axis=1).mean():11,.2f} items per user on average")
 
     print("")
     print(f"Training kNN model with k={k}")
@@ -59,14 +61,18 @@ def train(input_folder, output_folder, k=1000):
     print("")
     print("Evaluating")
     print(" ◦ Loading evaluation data")
-    u_x_i_dev = read_data(dev_file, user_ids, item_ids)  # .toarray()
+    user_ids_dev = list(set(pd.read_csv(dev_file, dtype="object")["user_id"]))
+    u_x_i_dev = read_data(dev_file, user_ids_dev, item_ids)
+    u_x_i_train = read_data(train_file, user_ids_dev, item_ids)
+    print("u_x_i_dev:", u_x_i_dev.shape)
+    print("u_x_i_train:", u_x_i_train.shape)
 
-    sample = sample_users(u_x_i_dev, len(user_ids))
+    sample = sample_users(u_x_i_dev, len(user_ids_dev))
 
     print(f" ◦ Scoring for {sample.shape[0]:,} users")
     knn_model = KnnModel(item_ids, model.similarity)
     u_x_i_sample = u_x_i_train[sample].toarray()
-    knn_preds_sample = knn_model.score(u_x_i_sample)
+    knn_preds_sample = knn_model.score(u_x_i_sample, normalize=False)
 
     # Remove consumed items from predictions
     knn_preds_sample[u_x_i_sample.astype(bool)] = 0
