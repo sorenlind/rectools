@@ -39,15 +39,15 @@ def read_data(filename, users, items, sep=","):
     )
     return matrix.tocsr()
 
+
 # TODO: Add seed
+
 
 def sample_users(u_x_i, sample_size):
     """Sample a set of active users and return their indices."""
     active_mask = u_x_i.sum(axis=1).A1 > 0
-    logging.info(
-        "Users in test set: %s (total), %s (active)",
-        u_x_i.shape[0],
-        np.sum(active_mask),
+    print(
+        f"Users in test set: {u_x_i.shape[0]} (total), {np.sum(active_mask)} (active)"
     )
     active_indices = np.where(active_mask)[0]
     sample_indices = np.random.choice(
