@@ -13,7 +13,7 @@ from sklearn.preprocessing import MultiLabelBinarizer
 from .preprocess import read_data, sample_users
 
 
-def train(input_folder, output_folder, k=1000):
+def train(input_folder, output_folder, k=1000, n_dev=None):
     """
     Train model.
 
@@ -67,7 +67,7 @@ def train(input_folder, output_folder, k=1000):
     print("u_x_i_dev:", u_x_i_dev.shape)
     print("u_x_i_train:", u_x_i_train.shape)
 
-    sample = sample_users(u_x_i_dev, len(user_ids_dev))
+    sample = sample_users(u_x_i_dev, n_dev or len(user_ids_dev))
 
     print(f" ◦ Scoring for {sample.shape[0]:,} users")
     knn_model = KnnModel(item_ids, model.similarity)
