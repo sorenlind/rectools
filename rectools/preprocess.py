@@ -54,3 +54,37 @@ def sample_users(u_x_i, sample_size):
         active_indices, min(len(active_indices), sample_size), replace=False
     )
     return sample_indices
+
+
+def train_dev_split(df, seed, n_dev=1000):
+    """
+    Create train/dev split.
+
+    Sample n_dev random users. Then, for each of those users, sample one random
+    observation. Those observations will be the dev set. Everything else will be the
+    training set.
+    """
+    np.random.seed(seed)
+
+    # Sample n_dev users
+    grouped = df.groupby("user_id")
+    group_ids = np.arange(grouped.ngroups)
+    np.random.shuffle(group_ids)
+    group_ids = group_ids[:n_dev]
+    df_sample_u = df[grouped.ngroup().isin(group_ids)]
+
+    # Sample exactly one document from every sampled user
+    grouped = (
+        df_sample_u.groupby("user_id").apply(lambda x: x.sample(1)).reset_index(level=1)
+    )
+
+    # Create dev mask
+    dev_indices = list(grouped["level_1"])
+    mask = np.zeros(df.shape[0]).astype(bool)
+    mask[dev_indices] = 1
+
+    # Apply mask
+    df_train = df.iloc[~mask].copy()
+    df_dev = df.iloc[mask].copy()
+
+    return df_train, df_dev
